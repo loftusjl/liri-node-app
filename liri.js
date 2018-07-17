@@ -18,28 +18,21 @@ let arg = process.argv[3];
 
 switch (action) {
     case `my-tweets`:
-        // Show your last 20 tweets and when they were created at in your terminal/bash window.
-        console.log(client)
-        break;
-    case `spotify-this-song`:
-    console.log(typeof arg);
-        //     This will show the following information about the song in your terminal/bash window
-        //      * Artist(s)
-        //      * The song's name
-        //      * A preview link of the song from Spotify
-        //      * The album that the song is from
+        // Show my last 20 tweets and when they were created at in your terminal/bash window.
+        // Adding a user name after command will pull that users tweets instead of the default.
         if (typeof arg === 'undefined') {
-            spotify.search({
-                type: 'track',
-                query: 'The Sign',
-            }, function (err, data) {
-                if (err) {
-                    return console.log(`Error occurred: ${err}`)
-                } else {
-                    console.log(`Yay data ${data}`);
-                    console.log(data.tracks.items[0].artists[0].name);
-                }
-            })
+            getTweets('JesseL94798398');
+        }
+        else {
+            getTweets(arg);
+        };
+        break;
+    case `spotify-this-song`: // list related artist, track, album and preview link
+        if (typeof arg === 'undefined') {
+            spotifySongSearch('The Sign')
+            console.log('Searching: The Sign')
+        } else {
+            spotifySongSearch(arg)
         }
         break;
     case `movie-this`:
@@ -63,4 +56,64 @@ switch (action) {
         break;
     default:
         console.log(`Default function`)
+}
+
+// function for viewing JSON outputs
+function outputJSON(data) {
+    fs.writeFile("output.txt", JSON.stringify(data, null, 2), function (err) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(`output.txt was updated`);
+    })
+}
+
+// Search for song
+function spotifySongSearch(song) {
+    song = song.toLowerCase();
+    spotify.search({
+        type: 'track',
+        query: song,
+    }, function (err, data) {
+        if (err) {
+            return console.log(`Error occurred: ${err}`)
+        } else {
+            songArtist(data.tracks.items, song);
+        }
+    })
+}
+// Work through arrays and display appropriate results
+// Filters out results that don't quite fit.
+// also removes case 
+function songArtist(array, song) {
+    for (i = 0; i < array.length; i++) {
+        let songArray = array[i].name.toLowerCase();
+        if (songArray.includes(song)) {
+            let artistsList = array[i].artists;
+            for (a = 0; a < artistsList.length; a++) {
+                console.log(`+--------------------------+
+                \n| Artist: ${artistsList[a].name} - ${array[i].name}
+                \n| Album: ${array[i].album.name}
+                \n| Preview Link: ${array[i].preview_url}
+                \n+--------------------------+`);
+            }
+        }
+    }
+}
+function getTweets(user) {
+    var params = {
+        screen_name: user
+    };
+    client.get('statuses/user_timeline', params, function (error, tweets, response) {
+        if (!error) {
+            console.log(`Recent Tweets:`)
+            for (t = 0; t < tweets.length; t++) {
+                console.log(`
+                \n${tweets[t].text}
+                \nCreated at: ${tweets[t].created_at}
+                \n+--------------------------+
+                `)
+            }
+        }
+    });
 }
