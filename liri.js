@@ -22,8 +22,7 @@ switch (action) {
         // Adding a user name after command will pull that users tweets instead of the default.
         if (typeof arg === 'undefined') {
             getTweets('JesseL94798398');
-        }
-        else {
+        } else {
             getTweets(arg);
         };
         break;
@@ -36,14 +35,24 @@ switch (action) {
         }
         break;
     case `movie-this`:
-        var params = {
-            apikey: 'apikey=trilogy',
-            IMDb_ID: 'i=',
-            title: 't=',
-            year: 'y=',
-            plot: 'plot',
-            returnType: 'r=JSON'
-        }
+        var request = require("request");
+
+        var options = {
+            method: 'GET',
+            url: 'http://www.omdbapi.com/',
+            qs: {
+                apikey: '8beaf1e3',
+                t: 'Mr. Nobody',
+                r: 'JSON',
+            },
+        };
+
+        request(options, function (error, response, body) {
+            if (error) console.log(error);
+
+            console.log(body);
+        });
+
         //     This will output the following information to your terminal/bash window:
         //        * Title of the movie.
         //        * Year the movie came out.
@@ -108,9 +117,12 @@ function songArtist(array, song) {
         }
     }
 }
+
 function getTweets(user) {
     var params = {
-        screen_name: user
+        screen_name: user,
+        count: 20,
+        exclude_replies: true
     };
     client.get('statuses/user_timeline', params, function (error, tweets, response) {
         if (!error) {
