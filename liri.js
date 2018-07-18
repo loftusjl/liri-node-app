@@ -2,77 +2,70 @@ require("dotenv").config();
 const keys = require('./keys');
 var Spotify = require('node-spotify-api');
 var Twitter = require('twitter');
-
-// require FS for file system use
 var fs = require('fs');
-
-fs.readFile("random.txt", "utf8", function (error, data) {
-
-});
-
 var spotify = new Spotify(keys.spotify);
 var client = new Twitter(keys.twitter);
+let action = process.argv[2]; // store requested command
+let arg = process.argv[3]; // store any arguments
 
-let action = process.argv[2];
-let arg = process.argv[3];
 
-switch (action) {
-    case `my-tweets`:
-        // Show my last 20 tweets and when they were created at in your terminal/bash window.
-        // Adding a user name after command will pull that users tweets instead of the default.
-        if (typeof arg === 'undefined') {
-            getTweets('JesseL94798398');
-        } else {
-            getTweets(arg);
-        };
-        break;
-    case `spotify-this-song`: // list related artist, track, album and preview link
-        if (typeof arg === 'undefined') {
-            spotifySongSearch('The Sign')
-            console.log('Searching: The Sign')
-        } else {
-            spotifySongSearch(arg)
-        }
-        break;
-    case `movie-this`:
-        var request = require("request");
+execCmd(action, arg); // get command from user command line input
 
-        var options = {
-            method: 'GET',
-            url: 'http://www.omdbapi.com/',
-            qs: {
-                apikey: '8beaf1e3',
-                t: 'Mr. Nobody',
-                r: 'JSON',
-            },
-        };
-
-        request(options, function (error, response, body) {
-            if (error) console.log(error);
-
-            console.log(body);
-        });
-
-        //     This will output the following information to your terminal/bash window:
-        //        * Title of the movie.
-        //        * Year the movie came out.
-        //        * IMDB Rating of the movie.
-        //        * Rotten Tomatoes Rating of the movie.
-        //        * Country where the movie was produced.
-        //        * Language of the movie.
-        //        * Plot of the movie.
-        //        * Actors in the movie.
-        //    * If the user doesn't type a movie in, the program will output data for the movie 'Mr. Nobody.'
-        break;
-    case `do-what-it-says`:
-        // * Using the `fs` Node package, LIRI will take the text inside of random.txt and then use it to call one of LIRI's commands.
-
-        //  * It should run `spotify-this-song` for "I Want it That Way," as follows the text in `random.txt`.
-
-        //  * Feel free to change the text in that document to test out the feature for other commands.
-        break;
-    default:
-        console.log(`Default function`)
+function execCmd(cmd, arg) {
+    switch (cmd) {
+        case `my-tweets`:
+            // Show my last 20 tweets and when they were created at in your terminal/bash window.
+            // Adding a user name after command will pull that users tweets instead of the default.
+            if (typeof arg === 'undefined') {
+                getTweets('JesseL94798398');
+            } else {
+                getTweets(arg);
+            };
+            break;
+        case `spotify-this-song`: // list related artist, track, album and preview link
+            if (typeof arg === 'undefined') {
+                spotifySongSearch('The Sign')
+            } else {
+                spotifySongSearch(arg)
+            }
+            break;
+        case `movie-this`:
+            var request = require("request");
+            var options = {
+                method: 'GET',
+                url: 'http://www.omdbapi.com/',
+                qs: {
+                    apikey: '8beaf1e3',
+                    t: 'Mr. Nobody',
+                    r: 'JSON',
+                },
+            };
+            request(options, function (error, response, body) {
+                if (error) console.log(error);
+                console.log(body);
+            });
+            //     This will output the following information to your terminal/bash window:
+            //        * Title of the movie.
+            //        * Year the movie came out.
+            //        * IMDB Rating of the movie.
+            //        * Rotten Tomatoes Rating of the movie.
+            //        * Country where the movie was produced.
+            //        * Language of the movie.
+            //        * Plot of the movie.
+            //        * Actors in the movie.
+            //    * If the user doesn't type a movie in, the program will output data for the movie 'Mr. Nobody.'
+            break;
+        case `do-what-it-says`:
+            // read random.txt and run the command and any arguments listed. format: command,"argument"
+            fs.readFile('random.txt', 'utf-8', function (error, data) {
+                var fileCmd = data.split(',');
+                let argument = fileCmd[1].replace(/[^0-9a-z]/gi, ' ').toLowerCase() // remove special characters and make lower case
+                execCmd(fileCmd[0], argument);
+            });
+            break;
+        default:
+            console.log(`Default Function`)
+    }
 }
 
 // function for viewing JSON outputs
@@ -104,7 +97,7 @@ function spotifySongSearch(song) {
 // also removes case 
 function songArtist(array, song) {
     for (i = 0; i < array.length; i++) {
-        let songArray = array[i].name.toLowerCase();
+        let songArray = array[i].name.replace(/[^0-9a-z]/gi, ' ').toLowerCase(); // remove special characters and make lower case
         if (songArray.includes(song)) {
             let artistsList = array[i].artists;
             for (a = 0; a < artistsList.length; a++) {
@@ -120,9 +113,9 @@ function songArtist(array, song) {
 
 function getTweets(user) {
     var params = {
-        screen_name: user,
-        count: 20,
-        exclude_replies: true
+        screen_name: user, // use argument as user name
+        count: 20, // restrict to 20
+        exclude_replies: true // do not pull tweet replies
     };
     client.get('statuses/user_timeline', params, function (error, tweets, response) {
         if (!error) {
