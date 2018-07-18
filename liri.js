@@ -36,6 +36,14 @@ switch (action) {
         }
         break;
     case `movie-this`:
+        var params = {
+            apikey: 'apikey=trilogy',
+            IMDb_ID: 'i=',
+            title: 't=',
+            year: 'y=',
+            plot: 'plot',
+            returnType: 'r=JSON'
+        }
         //     This will output the following information to your terminal/bash window:
         //        * Title of the movie.
         //        * Year the movie came out.
