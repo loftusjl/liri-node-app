@@ -64,7 +64,7 @@ function execCmd(cmd, arg) {
             });
             break;
         default:
-            console.log(`Default Function`)
+            logCmd(`Default Function`)
     }
 }
 
@@ -76,6 +76,16 @@ function outputJSON(data) {
         }
         console.log(`output.txt was updated`);
     })
+}
+// Log commands
+function logCmd(data) {
+    fs.appendFile("log.txt", data + "\r\n", function (err) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(`Command Logged`);
+    })
+    console.log(data)
 }
 
 // Search for song
@@ -101,11 +111,11 @@ function songArtist(array, song) {
         if (songArray.includes(song)) {
             let artistsList = array[i].artists;
             for (a = 0; a < artistsList.length; a++) {
-                console.log(`+--------------------------+
-                \n| Artist: ${artistsList[a].name} - ${array[i].name}
-                \n| Album: ${array[i].album.name}
-                \n| Preview Link: ${array[i].preview_url}
-                \n+--------------------------+`);
+                logCmd(`+--------------------------+
+                \r\n| Artist: ${artistsList[a].name} - ${array[i].name}
+                \r\n| Album: ${array[i].album.name}
+                \r\n| Preview Link: ${array[i].preview_url}
+                \r\n+--------------------------+`);
             }
         }
     }
@@ -119,12 +129,12 @@ function getTweets(user) {
     };
     client.get('statuses/user_timeline', params, function (error, tweets, response) {
         if (!error) {
-            console.log(`Recent Tweets:`)
+            logCmd(`Recent Tweets:`)
             for (t = 0; t < tweets.length; t++) {
-                console.log(`
-                \n${tweets[t].text}
-                \nCreated at: ${tweets[t].created_at}
-                \n+--------------------------+
+                logCmd(`
+                \r\n| ${tweets[t].text}
+                \r\n| Created at: ${tweets[t].created_at}
+                \r\n+--------------------------+
                 `)
             }
         }
