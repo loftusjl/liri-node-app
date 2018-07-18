@@ -41,8 +41,26 @@ function execCmd(cmd, arg) {
                 },
             };
             request(options, function (error, response, body) {
-                if (error) console.log(error);
-                console.log(body);
+                if (error) {
+                    console.log(error);
+                }
+                else {
+                    let rottenTomatoes = response.Ratings;
+
+                    console.log(`
+                    Movie Info:
+                    +--------------------------+
+                    \r\n| ${response.Title}
+                    \r\n| ${response.Year}
+                    \r\n| ${response.imdbRating}
+                    \r\n| ${rottenTomatoes.find(isRotten)}
+                    \r\n| ${response.Country}
+                    \r\n| ${response.Language}
+                    \r\n| ${response.Plot}
+                    \r\n| ${response.Actors}
+                    +--------------------------+
+                    `);
+                }
             });
             //     This will output the following information to your terminal/bash window:
             //        * Title of the movie.
@@ -83,9 +101,12 @@ function logCmd(data) {
         if (err) {
             return console.log(err);
         }
-        console.log(`Command Logged`);
     })
     console.log(data)
+}
+function isRotten(tomatoes) {
+    tomatoes.Source === 'Rotten Tomatoes';
+    return tomatoes.Value;
 }
 
 // Search for song
