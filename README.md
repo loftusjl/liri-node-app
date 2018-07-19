@@ -40,6 +40,7 @@ This is a command line tool for pulling tweets or movie and song info.
      * LIRI will take the text inside of random.txt and then use it to call one of LIRI's commands.
 
      * Feel free to change the text in that document to test out the feature for other commands.
+5. `all outputs are also pushed to a log.txt files inside the root directory`
 
 
 ### Prerequisites
