@@ -2,11 +2,16 @@ require("dotenv").config();
 const keys = require('./keys');
 var Spotify = require('node-spotify-api');
 var Twitter = require('twitter');
+var request = require("request");
+let SwitchOMDB = require('./switchOMDB');
+
 var fs = require('fs');
 var spotify = new Spotify(keys.spotify);
 var client = new Twitter(keys.twitter);
 let action = process.argv[2]; // store requested command
 let arg = process.argv[3]; // store any arguments
+
+
 
 
 execCmd(action, arg); // get command from user command line input
@@ -16,62 +21,43 @@ function execCmd(cmd, arg) {
         case `my-tweets`:
             // Show my last 20 tweets and when they were created at in your terminal/bash window.
             // Adding a user name after command will pull that users tweets instead of the default.
-            if (typeof arg === 'undefined') {
-                getTweets('JesseL94798398');
-            } else {
-                getTweets(arg);
-            };
+            (typeof arg === 'undefined' ? getTweets('JesseL94798398') : getTweets(arg))
             break;
         case `spotify-this-song`: // list related artist, track, album and preview link
-            if (typeof arg === 'undefined') {
-                spotifySongSearch('The Sign')
-            } else {
-                spotifySongSearch(arg)
-            }
+            if (typeof arg === 'undefined' ? spotifySongSearch('The Sign') : spotifySongSearch(arg))
             break;
         case `movie-this`:
-            var request = require("request");
-            var options = {
+            var options = { // OMDb API Options
                 method: 'GET',
-                url: 'http://www.omdbapi.com/',
+                url: 'https://www.omdbapi.com/',
                 qs: {
                     apikey: '8beaf1e3',
-                    t: 'Mr. Nobody',
-                    r: 'JSON',
+                    t: (typeof arg === 'undefined' ? 'Mr. Nobody' : arg),
+                    plot: 'short'
                 },
             };
             request(options, function (error, response, body) {
+                let jBody = JSON.parse(body);
                 if (error) {
-                    console.log(error);
-                }
-                else {
-                    let rottenTomatoes = response.Ratings;
-
+                    console.log(`Error Will Robinson! Error! ${error}\r\n`, error);
+                } else {
+                    let rottenTomatoes = jBody.Ratings;
+                    var tomatoRating = rottenTomatoes.find(function (element) {
+                        return element.Source = 'Rotten Tomatoes';
+                    });
                     console.log(`
-                    Movie Info:
-                    +--------------------------+
-                    \r\n| ${response.Title}
-                    \r\n| ${response.Year}
-                    \r\n| ${response.imdbRating}
-                    \r\n| ${rottenTomatoes.find(isRotten)}
-                    \r\n| ${response.Country}
-                    \r\n| ${response.Language}
-                    \r\n| ${response.Plot}
-                    \r\n| ${response.Actors}
-                    +--------------------------+
+                    \r\nMovie Info:
+                    \r\n+--------------------------+
+                    \r\n| ${jBody.Title}
+                    \r\n| Released in ${jBody.Year}
+                    \r\n| IMDB Rating: ${jBody.imdbRating}, Rotten Tomatoes Rating: ${tomatoRating.Value}
+                    \r\n| Country: ${jBody.Country}, Language: ${jBody.Language}
+                    \r\n| Short Plot Summary: ${jBody.Plot}
+                    \r\n| Actors: ${jBody.Actors}
+                    \r\n+--------------------------+
                     `);
                 }
             });
-            //     This will output the following information to your terminal/bash window:
-            //        * Title of the movie.
-            //        * Year the movie came out.
-            //        * IMDB Rating of the movie.
-            //        * Rotten Tomatoes Rating of the movie.
-            //        * Country where the movie was produced.
-            //        * Language of the movie.
-            //        * Plot of the movie.
-            //        * Actors in the movie.
-            //    * If the user doesn't type a movie in, the program will output data for the movie 'Mr. Nobody.'
             break;
         case `do-what-it-says`:
             // read random.txt and run the command and any arguments listed. format: command,"argument"
@@ -86,7 +72,7 @@ function execCmd(cmd, arg) {
     }
 }
 
-// function for viewing JSON outputs
+// function for viewing JSON outputs. Remove when done with program.
 function outputJSON(data) {
     fs.writeFile("output.txt", JSON.stringify(data, null, 2), function (err) {
         if (err) {
@@ -103,10 +89,6 @@ function logCmd(data) {
         }
     })
     console.log(data)
-}
-function isRotten(tomatoes) {
-    tomatoes.Source === 'Rotten Tomatoes';
-    return tomatoes.Value;
 }
 
 // Search for song
@@ -149,6 +131,7 @@ function getTweets(user) {
         exclude_replies: true // do not pull tweet replies
     };
     client.get('statuses/user_timeline', params, function (error, tweets, response) {
+        outputJSON(tweets)
         if (!error) {
             logCmd(`Recent Tweets:`)
             for (t = 0; t < tweets.length; t++) {
